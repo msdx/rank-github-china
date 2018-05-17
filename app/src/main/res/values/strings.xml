@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RankGithubChina</string>
+    <string name="revert">反转</string>
 </resources>
