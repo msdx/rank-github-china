@@ -5,6 +5,9 @@ import com.githang.rankgithubchina.api.User
 import com.githang.rankgithubchina.api.UserService
 import com.githang.rankgithubchina.db.SqlOrm
 import com.githang.rankgithubchina.support.Presenter
+import rx.Observable
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 import java.util.concurrent.CountDownLatch
 
 /**
@@ -48,11 +51,12 @@ interface UserPresenter : Presenter<UserView> {
         }
 
         override fun queryFromDatabase() {
-            SqlOrm.queryWhere(User::class.java, 1000, User.COL_FOLLOWERS)
-                    .let {
-                        view.showUsers(it)
-                        view.dismissLoading()
-                    }
+            Observable.just(User::class.java)
+                    .doOnSubscribe({ view.showLoading() })
+                    .subscribeOn(Schedulers.io())
+                    .map { SqlOrm.query(it, 1000, User.COL_FOLLOWERS) }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({ view.showUsers(it) }, { view.dismissLoading() }, { view.dismissLoading() })
         }
     }
 }
