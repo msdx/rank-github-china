@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+ext.keyPswd = hasProperty("keyPswd") ? getProperty("keyPswd") : ""
+
 android {
     compileSdkVersion 27
     defaultConfig {
@@ -14,10 +16,24 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        myConfig {
+            storeFile file("../release.jks")
+            storePassword keyPswd
+            keyAlias "rank-github-china"
+            keyPassword keyPswd
+        }
+    }
     buildTypes {
+        debug {
+            if (hasProperty("keyPswd")) {
+                signingConfig signingConfigs.myConfig
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.myConfig
         }
     }
     androidExtensions {
@@ -27,7 +43,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
@@ -44,4 +60,13 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+if (hasProperty("publish")) {
+    apply plugin: "fir"
+    def token = hasProperty("FIR_TOKEN") ? getProperty("FIR_TOKEN") : ""
+    fir {
+        apiToken token
+        upload true
+    }
 }
