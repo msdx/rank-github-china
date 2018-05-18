@@ -10,6 +10,5 @@ object Constant {
 
     fun getAvatarUrl(userId: String, size: Int): String {
         return "$AVATAR_URL${userId.substringAfter("user-")}?v=4&s=$size"
-
     }
 }

@@ -1,5 +1,6 @@
 package com.githang.rankgithubchina.main
 
+import android.annotation.SuppressLint
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
@@ -9,8 +10,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.githang.rankgithubchina.R
 import com.githang.rankgithubchina.api.Constant
 import com.githang.rankgithubchina.api.User
-import java.text.SimpleDateFormat
-import java.util.TimeZone
 
 /**
  * @author 黄浩杭 (huanghaohang@parkingwang.com)
@@ -28,6 +27,7 @@ class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val mContext = itemView.context
     private val mAvatarSize = lazy { mAvatar.layoutParams.height }
 
+    @SuppressLint("SetTextI18n")
     fun update(user: User, position: Int) {
         Glide.with(mContext)
                 .load(Constant.getAvatarUrl(user.id, mAvatarSize.value))

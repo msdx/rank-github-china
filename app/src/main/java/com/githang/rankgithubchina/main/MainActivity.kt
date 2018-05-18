@@ -32,25 +32,27 @@ class MainActivity : AppCompatActivity(), UserView {
         mLayoutManager = LinearLayoutManager(this)
         recycler_view.layoutManager = mLayoutManager
         val inflater = LayoutInflater.from(this)
-        mAdapter = object : ListAdapter<User, UserViewHolder>(AsyncDifferConfig.Builder<User>(
-                object : DiffUtil.ItemCallback<User>() {
-                    override fun areItemsTheSame(oldItem: User, newItem: User): Boolean {
-                        return TextUtils.equals(oldItem.id, newItem.id)
-                    }
-
-                    override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {
-                        return oldItem == newItem
-                    }
-                }
-        ).build()) {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-                return UserViewHolder(inflater.inflate(R.layout.item_user, parent, false))
+        mAdapter = object : DiffUtil.ItemCallback<User>() {
+            override fun areItemsTheSame(oldItem: User, newItem: User): Boolean {
+                return TextUtils.equals(oldItem.id, newItem.id)
             }
 
-            override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-                holder.update(getItem(position), position)
+            override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {
+                return oldItem == newItem
             }
         }
+                .let { AsyncDifferConfig.Builder<User>(it).build() }
+                .let {
+                    object : ListAdapter<User, UserViewHolder>(it) {
+                        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
+                            return UserViewHolder(inflater.inflate(R.layout.item_user, parent, false))
+                        }
+
+                        override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
+                            holder.update(getItem(position), position)
+                        }
+                    }
+                }
         recycler_view.adapter = mAdapter
         recycler_view.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
 
@@ -58,7 +60,6 @@ class MainActivity : AppCompatActivity(), UserView {
             mPresenter.queryFromDatabase()
         } else {
             mPresenter.queryFromGithub()
-            Preference.setQueriedToday()
         }
     }
 
@@ -75,8 +76,8 @@ class MainActivity : AppCompatActivity(), UserView {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        return menuInflater.inflate(R.menu.menu_main, menu)
-                .let { super.onCreateOptionsMenu(menu) }
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

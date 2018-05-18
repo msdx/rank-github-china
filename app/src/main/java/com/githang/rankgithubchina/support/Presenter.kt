@@ -4,10 +4,7 @@
 
 package com.githang.rankgithubchina.support
 
-import rx.Observable
 import rx.Subscription
-import rx.android.schedulers.AndroidSchedulers
-import rx.schedulers.Schedulers
 import java.lang.ref.WeakReference
 import java.util.ArrayList
 
@@ -29,18 +26,13 @@ interface Presenter<T : IView> {
      */
     fun unsubscribeAll()
 
-    open class Base<T : IView> protected constructor(override val view: T) : Presenter<T>, SubscriberWatcher {
+    open class Base<T : IView> protected constructor(override val view: T) : Presenter<T> {
 
         private val mSubscriptions = ArrayList<WeakReference<Subscription>>()
 
-        override fun unsubscribeAll() {
-            for (ref in mSubscriptions) {
-                val subscription = ref.get()
-                if (subscription != null && !subscription.isUnsubscribed) {
-                    subscription.unsubscribe()
-                }
-            }
-            mSubscriptions.clear()
+        protected fun watchSubscription(subscription: Subscription) {
+            recyclerSubscriptions()
+            mSubscriptions.add(WeakReference(subscription))
         }
 
         private fun recyclerSubscriptions() {
@@ -53,25 +45,14 @@ interface Presenter<T : IView> {
             }
         }
 
-        protected fun <D> applySchedulers(): Observable.Transformer<D, D> {
-            return TRANSFORMER as Observable.Transformer<D, D>
+        override fun unsubscribeAll() {
+            mSubscriptions.forEach { cancelSubscription(it.get()) }
+            mSubscriptions.clear()
         }
 
-        override fun watchSubscription(subscription: Subscription) {
-            recyclerSubscriptions()
-            mSubscriptions.add(WeakReference(subscription))
-        }
-
-        protected fun cancelSubscription(subscription: Subscription?) {
+        private fun cancelSubscription(subscription: Subscription?) {
             if (subscription != null && !subscription.isUnsubscribed) {
                 subscription.unsubscribe()
-            }
-        }
-
-        companion object {
-            private val TRANSFORMER = Observable.Transformer<Any, Any> { observable ->
-                observable.subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
             }
         }
     }
